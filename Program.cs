@@ -9,6 +9,7 @@ namespace TrackFile
         private static System.Timers.Timer aTimer;
         private static string targetFilePath;
         private static string logFileName = "TrackFile.log";
+        private static int checkInterval = 60;
         
         public static void Main(string[] args)
         {
@@ -27,19 +28,16 @@ namespace TrackFile
                 return;
             }
 
-            // Interval in seconds.
-            int interval = 60;
             if (args.Length == 2)
             {
-                int.TryParse(args[1], out interval);
+                int.TryParse(args[1], out checkInterval);
             }
 
-            // Converting the value to milliseconds.
-            interval *= 1000;
+            var intervalMs = checkInterval *= 1000;
 
             //
 
-            SetTimer(interval);
+            SetTimer(intervalMs);
 
             var now = DateTime.Now;
             Console.WriteLine("\nPress the Enter key to exit the application...\n");
@@ -58,15 +56,12 @@ namespace TrackFile
         {
             aTimer = new System.Timers.Timer(interval);
 
-            aTimer.Elapsed += OnTimedEvent;
+            aTimer.Elapsed += (source, e) => {
+                CheckFileExists();
+            };
+
             aTimer.AutoReset = true;
             aTimer.Enabled = true;
-        }
-
-        private static void OnTimedEvent(Object source, ElapsedEventArgs e)
-        {
-            //CheckFileExists(e.SignalTime);
-            CheckFileExists();
         }
 
         private static void CheckFileExists()
@@ -75,7 +70,7 @@ namespace TrackFile
             
             if (File.Exists(targetFilePath))
             {
-                    info += " : OK.";
+                info += " : OK.";
             }
             else
             {
